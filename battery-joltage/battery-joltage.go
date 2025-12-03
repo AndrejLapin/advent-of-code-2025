@@ -22,8 +22,8 @@ func main() {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		digitArray := []byte{}
-		digit_count := 12
+		const digit_count = 12
+		digitArray := [digit_count]byte{}
 		highestIndex := 0
 		for digit := 1; digit <= digit_count; digit++ {
 			highestCurrent := highestIndex
@@ -35,10 +35,10 @@ func main() {
 				}
 			}
 			// fmt.Printf("Highest current found %d\n", highestCurrent)
-			digitArray = append(digitArray, line[highestCurrent])
+			digitArray[digit-1] = line[highestCurrent]
 			highestIndex = highestCurrent + 1
 		}
-		found_joltage, err := strconv.Atoi(string(digitArray))
+		found_joltage, err := strconv.Atoi(string(digitArray[:]))
 		if err != nil {
 			panic(err)
 		}
