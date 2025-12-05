@@ -44,7 +44,11 @@ func main() {
 	visitedPlaces[0] = make(map[int]bool)
 	visitedPlaces[0][0] = true
 	uniqueHousesVisited := 1
-	position := Position{x: 0, y: 0}
+	positions := [2]Position{}
+	for index, _ := range positions {
+		positions[index] = Position{x: 0, y: 0}
+	}
+	turnIndex := 0
 	for {
 		readByte, err := reader.ReadByte()
 		if err != nil {
@@ -52,17 +56,18 @@ func main() {
 		}
 		switch readByte {
 		case '^':
-			position.y++
+			positions[turnIndex].y++
 		case 'v':
-			position.y--
+			positions[turnIndex].y--
 		case '<':
-			position.x--
+			positions[turnIndex].x--
 		case '>':
-			position.x++
+			positions[turnIndex].x++
 		}
-		if visitingUniqueHouse(&position, &visitedPlaces) {
+		if visitingUniqueHouse(&positions[turnIndex], &visitedPlaces) {
 			uniqueHousesVisited++
 		}
+		turnIndex = (turnIndex + 1) % len(positions)
 	}
 	fmt.Println(uniqueHousesVisited)
 }
