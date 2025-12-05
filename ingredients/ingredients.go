@@ -21,42 +21,93 @@ func main() {
 	scanner := bufio.NewScanner(file)
 
 	ranges := [][2]int{}
-	freshIngredientCount := 0
 
 	scanningRanges := true
 	for scanner.Scan() {
 		if scanningRanges {
-			// line := string(append([]byte(nil), scanner.Text()...))
 			line := scanner.Text()
 			if len(line) == 0 {
 				scanningRanges = false
-				continue
+				break
 			}
 			parts := strings.Split(line, "-")
-			range_start, err := strconv.Atoi(parts[0])
+			rangeStart, err := strconv.Atoi(parts[0])
 			if err != nil {
 				panic(err)
 			}
-			range_end, err := strconv.Atoi(parts[1])
+			rangeEnd, err := strconv.Atoi(parts[1])
 			if err != nil {
 				panic(err)
 			}
-			ranges = append(ranges, [2]int{range_start, range_end})
-			// fmt.Println(ranges[len(ranges)-1])
 
-		} else {
-			line := scanner.Text()
-			ingredientId, err := strconv.Atoi(line)
-			if err != nil {
-				panic(err)
-			}
-			for _, singleRange := range ranges {
-				if ingredientId >= singleRange[0] && ingredientId <= singleRange[1] {
-					freshIngredientCount++
+			previousExpandedRange := -1
+			currentRange := [2]int{rangeStart, rangeEnd}
+
+			emplaceRange := true
+			findCanExpand := true
+			loopCount := 10
+			for findCanExpand && loopCount > 0 {
+				loopCount--
+				rangeDiscarded := false
+				rangeExpanded := false
+				findCanExpand = false
+				currentExpandedRange := -1
+
+				for index, singleRange := range ranges {
+					if index == previousExpandedRange {
+						continue
+					}
+					if currentRange[0] >= singleRange[0] && currentRange[0] <= singleRange[1] &&
+						currentRange[1] > singleRange[1] {
+						ranges[index][1] = currentRange[1]
+						currentExpandedRange = index
+						rangeExpanded = true
+						break
+					} else if currentRange[1] >= singleRange[0] && currentRange[1] <= singleRange[1] &&
+						currentRange[0] < singleRange[0] {
+						ranges[index][0] = currentRange[0]
+						currentExpandedRange = index
+						rangeExpanded = true
+						break
+					} else if currentRange[0] <= singleRange[0] && currentRange[1] >= singleRange[1] {
+						ranges[index][0] = currentRange[0]
+						ranges[index][1] = currentRange[1]
+						currentExpandedRange = index
+						rangeExpanded = true
+						break
+					} else if currentRange[0] >= singleRange[0] && currentRange[1] <= singleRange[1] {
+						emplaceRange = false
+						rangeDiscarded = true
+						break
+					}
+				}
+
+				if rangeDiscarded {
 					break
 				}
+
+				if rangeExpanded {
+					emplaceRange = false
+					findCanExpand = true
+					currentRange[0] = ranges[currentExpandedRange][0]
+					currentRange[1] = ranges[currentExpandedRange][1]
+					if previousExpandedRange != currentExpandedRange && previousExpandedRange != -1 {
+						ranges = append(ranges[:previousExpandedRange], ranges[previousExpandedRange+1:]...)
+						if previousExpandedRange < currentExpandedRange {
+							currentExpandedRange--
+						}
+					}
+				}
+				previousExpandedRange = currentExpandedRange
+			}
+			if emplaceRange {
+				ranges = append(ranges, [2]int{rangeStart, rangeEnd})
 			}
 		}
 	}
-	fmt.Println(freshIngredientCount)
+	freshIngredientTotal := 0
+	for _, singleRange := range ranges {
+		freshIngredientTotal += singleRange[1] - singleRange[0] + 1
+	}
+	fmt.Println(freshIngredientTotal)
 }
