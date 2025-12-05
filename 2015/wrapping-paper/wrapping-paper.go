@@ -21,7 +21,7 @@ func main() {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	wrappingPaperTotal := 0
+	ribbonTotal := 0
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -30,19 +30,21 @@ func main() {
 		}
 		dimensionsStrings := strings.Split(line, "x")
 		dimensions := [3]int{}
+		volume := 1
 		for index, value := range dimensionsStrings {
 			dimensions[index], _ = strconv.Atoi(value)
+			volume *= dimensions[index]
 		}
-		smallestSide := math.MaxInt
+		smallestPerimiter := math.MaxInt
 		sides := [3]int{} // i don't think we even need this
 		for index, _ := range sides {
-			sides[index] = dimensions[index] * dimensions[(index+1)%len(dimensions)]
-			if sides[index] < smallestSide {
-				smallestSide = sides[index]
+			sides[index] = 2*dimensions[index] + 2*dimensions[(index+1)%len(dimensions)]
+			if sides[index] < smallestPerimiter {
+				smallestPerimiter = sides[index]
 			}
-			wrappingPaperTotal += sides[index] * 2
+			// wrappingPaperTotal += sides[index] * 2
 		}
-		wrappingPaperTotal += smallestSide
+		ribbonTotal += smallestPerimiter + volume
 	}
-	fmt.Println(wrappingPaperTotal)
+	fmt.Println(ribbonTotal)
 }
